@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { LeadService } from './lead.service';
 import { Lead } from './lead.schema';
 import { LeadFilterDto } from './dto/lead-filter.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('lead')
+@UseGuards(JwtAuthGuard)
 export class LeadController {
   constructor(private readonly leadService: LeadService) {}
 
