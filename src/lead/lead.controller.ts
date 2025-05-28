@@ -19,6 +19,18 @@ export class LeadController {
     }
   }
 
+  @Get('status-counts')
+  async getLeadStatusCounts() {
+    try {
+      return await this.leadService.getLeadStatusCounts();
+    } catch (error) {
+      throw new HttpException(
+        error.message,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Get(':id')
   async getLeadById(@Param('id') id: string) {
     try {

@@ -40,7 +40,7 @@ export class LeadService {
         if (filters.endDate) query.createdAt.$lte = new Date(filters.endDate);
       }
     }
-
+    
     return await this.leadModel.find(query).sort({ createdAt: -1 }).exec();
   }
 
@@ -73,4 +73,24 @@ export class LeadService {
   async deleteLead(id: string): Promise<Lead> {
     return await this.leadModel.findByIdAndDelete(id).exec();
   }
+
+  async getLeadStatusCounts(): Promise<{ [status: string]: number }> {
+    const counts = await this.leadModel.aggregate([
+      {
+        $group: {
+          _id: '$leadStatus',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Convert to key-value object
+    const result: { [status: string]: number } = {};
+    counts.forEach((item) => {
+      result[item._id] = item.count;
+    });
+
+    return result;
+  }
+
 }

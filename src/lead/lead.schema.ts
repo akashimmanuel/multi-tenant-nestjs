@@ -4,14 +4,14 @@ import { Document } from 'mongoose';
 export enum LeadType {
   SUPPORT = 'Support',
   SALES = 'Sales',
-  INQUIRY = 'Inquiry',
+  CONSULTATION = 'Consultation',
 }
 
 export enum LeadStatus {
   OPEN = 'Open',
-  CLOSED = 'Closed',
-  PENDING = 'Pending',
-  IN_PROGRESS = 'In Progress',
+  CONVERTED = 'Converted',
+  REJECTED = 'Rejected',
+  DISCARDED = 'Discarded'
 }
 
 export enum LeadProgress {
