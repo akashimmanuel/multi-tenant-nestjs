@@ -42,7 +42,7 @@ describe('TenantService', () => {
       const mockExec = jest.fn().mockResolvedValue(mockTenant);
       mockTenantModel.findOne.mockReturnValue({ exec: mockExec });
 
-      const result = await service.getTenantBydId('test-tenant');
+      const result = await service.getTenantById('test-tenant');
       expect(result).toEqual(mockTenant);
       expect(mockTenantModel.findOne).toHaveBeenCalledWith({ tenant_id: 'test-tenant' });
     });
@@ -51,7 +51,7 @@ describe('TenantService', () => {
       const mockExec = jest.fn().mockResolvedValue(null);
       mockTenantModel.findOne.mockReturnValue({ exec: mockExec });
 
-      const result = await service.getTenantBydId('nonexistent');
+      const result = await service.getTenantById('nonexistent');
       expect(result).toBeNull();
       expect(mockTenantModel.findOne).toHaveBeenCalledWith({ tenant_id: 'nonexistent' });
     });

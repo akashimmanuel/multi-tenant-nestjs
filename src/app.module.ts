@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { mongooseModuleAsyncOptions } from './config/mongo.config';
 import { ProductModule } from './product/product.module';
 import { TenantModule } from './tenant/tenant.module';
+import { LeadModule } from './lead/lead.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { TenantModule } from './tenant/tenant.module';
     MongooseModule.forRootAsync(mongooseModuleAsyncOptions),
     ProductModule,
     TenantModule,
+    LeadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
