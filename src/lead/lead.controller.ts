@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, 
 import { LeadService } from './lead.service';
 import { Lead } from './lead.schema';
 import { LeadFilterDto } from './dto/lead-filter.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('lead')
 @UseGuards(JwtAuthGuard)

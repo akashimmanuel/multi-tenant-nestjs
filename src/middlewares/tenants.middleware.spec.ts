@@ -9,7 +9,7 @@ describe('TenantsMiddleware', () => {
   let tenantService: TenantService;
 
   const mockTenantService = {
-    getTenantBydId: jest.fn(),
+    getTenantById: jest.fn(),
   };
 
   const mockRequest = {
@@ -48,7 +48,7 @@ describe('TenantsMiddleware', () => {
 
     it('should throw NotFoundException when tenant does not exist', async () => {
       mockRequest.headers['x-tenant-id'] = 'nonexistent';
-      mockTenantService.getTenantBydId.mockResolvedValue(null);
+      mockTenantService.getTenantById.mockResolvedValue(null);
 
       await expect(middleware.use(mockRequest, mockResponse, mockNext)).rejects.toThrow(
         NotFoundException,
@@ -59,7 +59,7 @@ describe('TenantsMiddleware', () => {
     it('should set tenant_id in request and call next when tenant exists', async () => {
       const tenantId = 'existing-tenant';
       mockRequest.headers['x-tenant-id'] = tenantId;
-      mockTenantService.getTenantBydId.mockResolvedValue({ tenant_id: tenantId });
+      mockTenantService.getTenantById.mockResolvedValue({ tenant_id: tenantId });
 
       await middleware.use(mockRequest, mockResponse, mockNext);
 
