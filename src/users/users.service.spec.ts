@@ -1,22 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { LeadService } from './lead.service';
+import { UsersService } from './users.service';
 import { PROVIDER } from '../constants/providers';
 import { Model } from 'mongoose';
-import { Lead } from './lead.schema';
+import { User } from './user.schema';
 import { Tenant } from '../tenant/tenant.schema';
 
-describe('LeadService', () => {
-  let service: LeadService;
-  let leadModel: Model<Lead>;
+describe('UsersService', () => {
+  let service: UsersService;
+  let userModel: Model<User>;
   let tenantModel: Model<Tenant>;
 
-  const mockLeadModel = {
+  const mockUserModel = {
     find: jest.fn().mockReturnThis(),
     findById: jest.fn().mockReturnThis(),
+    findOne: jest.fn().mockReturnThis(),
     create: jest.fn(),
     findByIdAndUpdate: jest.fn().mockReturnThis(),
     findByIdAndDelete: jest.fn().mockReturnThis(),
-    sort: jest.fn().mockReturnThis(),
     exec: jest.fn(),
   };
 
@@ -28,10 +28,10 @@ describe('LeadService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        LeadService,
+        UsersService,
         {
-          provide: PROVIDER.LEAD_MODEL,
-          useValue: mockLeadModel,
+          provide: PROVIDER.USER_MODEL,
+          useValue: mockUserModel,
         },
         {
           provide: PROVIDER.TENANT_MODEL,
@@ -40,8 +40,8 @@ describe('LeadService', () => {
       ],
     }).compile();
 
-    service = module.get<LeadService>(LeadService);
-    leadModel = module.get<Model<Lead>>(PROVIDER.LEAD_MODEL);
+    service = module.get<UsersService>(UsersService);
+    userModel = module.get<Model<User>>(PROVIDER.USER_MODEL);
     tenantModel = module.get<Model<Tenant>>(PROVIDER.TENANT_MODEL);
   });
 

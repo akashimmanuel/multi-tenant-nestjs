@@ -8,7 +8,8 @@ describe('TenantController', () => {
   let service: TenantService;
 
   const mockTenantService = {
-    getTenantBydId: jest.fn(),
+    getTenant: jest.fn(),
+    getTenantById: jest.fn(),
     createTenant: jest.fn(),
   };
 
@@ -33,19 +34,21 @@ describe('TenantController', () => {
 
   describe('getTenants', () => {
     it('should return a tenant when found', async () => {
-      const mockTenant = {
-        tenant_id: 'technxt',
-        tenant_name: 'Test Tenant',
-      };
-      mockTenantService.getTenantBydId.mockResolvedValue(mockTenant);
+      const mockTenants = [
+        {
+          tenant_id: 'technxt',
+          tenant_name: 'Test Tenant',
+        }
+      ];
+      mockTenantService.getTenant.mockResolvedValue(mockTenants);
 
       const result = await controller.getTenants();
-      expect(result).toEqual(mockTenant);
-      expect(mockTenantService.getTenantBydId).toHaveBeenCalledWith('technxt');
+      expect(result).toEqual(mockTenants);
+      expect(mockTenantService.getTenant).toHaveBeenCalled();
     });
 
     it('should throw HttpException when tenant not found', async () => {
-      mockTenantService.getTenantBydId.mockRejectedValue(new Error('Tenant not found'));
+      mockTenantService.getTenant.mockRejectedValue(new Error('Tenant not found'));
 
       await expect(controller.getTenants()).rejects.toThrow(HttpException);
     });

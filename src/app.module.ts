@@ -7,6 +7,8 @@ import { mongooseModuleAsyncOptions } from './config/mongo.config';
 import { ProductModule } from './product/product.module';
 import { TenantModule } from './tenant/tenant.module';
 import { LeadModule } from './lead/lead.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { LeadModule } from './lead/lead.module';
     ProductModule,
     TenantModule,
     LeadModule,
+    AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
