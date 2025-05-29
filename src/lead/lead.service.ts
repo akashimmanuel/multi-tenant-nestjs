@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, ConflictException } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { PROVIDER } from '../constants/providers';
 import { Lead } from './lead.schema';
@@ -48,6 +48,16 @@ export class LeadService {
     return await this.leadModel.findById(id).exec();
   }
 
+  async checkDuplicateLead(email: string, mobileNo: string): Promise<boolean> {
+    const existingLead = await this.leadModel.findOne({
+      $or: [
+        { email: email.toLowerCase() },
+        { mobileNo }
+      ]
+    }).exec();
+    return !!existingLead;
+  }
+
   async createLead(leadData: {
     firstName: string;
     lastName: string;
@@ -63,6 +73,13 @@ export class LeadService {
     userRemarks?: string;
     appointmentDate?: Date;
   }): Promise<Lead> {
+    // Check for duplicate lead
+    const isDuplicate = await this.checkDuplicateLead(leadData.email, leadData.mobileNo);
+    if (isDuplicate) {
+      throw new ConflictException('A lead with this email or mobile number already exists');
+    }
+
+    // If no duplicate, create the lead
     return await this.leadModel.create(leadData);
   }
 

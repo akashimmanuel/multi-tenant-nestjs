@@ -74,8 +74,8 @@ export class Lead extends Document {
 
 export const LeadSchema = SchemaFactory.createForClass(Lead);
 
-LeadSchema.index({ email: 1 });
-LeadSchema.index({ mobileNo: 1 });
+// Add indexes
 LeadSchema.index({ leadStatus: 1 });
-LeadSchema.index({ leadType: 1 });
 LeadSchema.index({ createdAt: -1 });
+LeadSchema.index({ email: 1 }, { unique: true });
+LeadSchema.index({ mobileNo: 1 }, { unique: true });
