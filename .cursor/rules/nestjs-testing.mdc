@@ -1,0 +1,294 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# NestJS Testing Best Practices
+
+## Test Structure
+
+### Unit Tests
+
+1. **Naming Convention**: Name test files with `.spec.ts` suffix and place them next to the file being tested.
+
+```typescript
+// users.service.ts -> users.service.spec.ts
+// users.controller.ts -> users.controller.spec.ts
+```
+
+2. **Test Organization**: Use nested `describe` blocks to organize tests by method/functionality.
+
+```typescript
+describe('UsersService', () => {
+  // Service setup
+
+  describe('findAll', () => {
+    // Tests for findAll method
+  });
+
+  describe('findOne', () => {
+    // Tests for findOne method
+  });
+});
+```
+
+3. **Test Coverage**: Aim for 80%+ coverage for critical paths.
+
+### E2E Tests
+
+1. **Location**: Place in a separate `/test` folder at the project root.
+2. **Naming**: Use `.e2e-spec.ts` suffix.
+3. **Structure**: Test complete API endpoints and flows, not internal implementation.
+
+## Mocking Best Practices
+
+1. **Mock Dependencies**: Always mock external dependencies and services.
+
+```typescript
+const mockUsersService = {
+  findAll: jest.fn(),
+  findOne: jest.fn(),
+  create: jest.fn(),
+  update: jest.fn(),
+  remove: jest.fn(),
+};
+
+describe('UsersController', () => {
+  let controller: UsersController;
+  
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      controllers: [UsersController],
+      providers: [
+        {
+          provide: UsersService,
+          useValue: mockUsersService,
+        },
+      ],
+    }).compile();
+    
+    controller = module.get<UsersController>(UsersController);
+  });
+  
+  // Tests...
+});
+```
+
+2. **Database Models**: Use mock implementations for Mongoose/TypeORM models.
+
+```typescript
+const mockUserModel = {
+  find: jest.fn().mockReturnThis(),
+  findById: jest.fn().mockReturnThis(),
+  findOne: jest.fn().mockReturnThis(),
+  create: jest.fn(),
+  exec: jest.fn(),
+};
+
+// In the providers array
+{
+  provide: PROVIDER.USER_MODEL, // Use constants for injection tokens
+  useValue: mockUserModel,
+}
+```
+
+3. **Return Values**: Set up appropriate return values for mocks.
+
+```typescript
+// For resolved promises
+mockUsersService.findAll.mockResolvedValue([user1, user2]);
+
+// For rejected promises
+mockUsersService.findOne.mockRejectedValue(new Error('User not found'));
+
+// For chained methods
+mockUserModel.find.mockReturnThis();
+mockUserModel.exec.mockResolvedValue([user1, user2]);
+```
+
+## Testing Controllers
+
+1. **Test HTTP Methods**: Test each endpoint with appropriate HTTP methods.
+2. **Validate Responses**: Check status codes, response body, and headers.
+3. **Error Handling**: Test error cases and exception filters.
+
+```typescript
+describe('createUser', () => {
+  it('should create a new user successfully', async () => {
+    // Arrange
+    const createUserDto = { name: 'Test User', email: 'test@example.com' };
+    const expectedResult = { id: 'uuid', ...createUserDto };
+    mockUsersService.create.mockResolvedValue(expectedResult);
+
+    // Act
+    const result = await controller.create(createUserDto);
+
+    // Assert
+    expect(result).toEqual(expectedResult);
+    expect(mockUsersService.create).toHaveBeenCalledWith(createUserDto);
+  });
+
+  it('should handle errors when creating a user', async () => {
+    // Arrange
+    const createUserDto = { name: 'Test User', email: 'existing@example.com' };
+    const errorMessage = 'Email already exists';
+    mockUsersService.create.mockRejectedValue(new Error(errorMessage));
+
+    // Act & Assert
+    try {
+      await controller.create(createUserDto);
+      fail('Should have thrown an exception');
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpException);
+      expect(error.message).toBe(errorMessage);
+      expect(error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
+    }
+  });
+});
+```
+
+## Testing Services
+
+1. **Business Logic**: Focus on testing business logic thoroughly.
+2. **Database Interactions**: Mock database models and test query building.
+3. **Edge Cases**: Include tests for all edge cases and error scenarios.
+
+```typescript
+describe('findAll', () => {
+  it('should return all users', async () => {
+    // Arrange
+    const mockUsers = [{ id: '1', name: 'User 1' }, { id: '2', name: 'User 2' }];
+    mockUserModel.find.mockReturnThis();
+    mockUserModel.exec.mockResolvedValue(mockUsers);
+
+    // Act
+    const result = await service.findAll();
+
+    // Assert
+    expect(result).toEqual(mockUsers);
+    expect(mockUserModel.find).toHaveBeenCalled();
+  });
+});
+```
+
+## Testing Multi-Tenant Applications
+
+1. **Tenant Context**: Test with different tenant contexts.
+2. **Isolation**: Verify data isolation between tenants.
+3. **Middleware Testing**: Test tenant identification middleware.
+
+```typescript
+describe('findAll with tenant', () => {
+  it('should return only users from the specified tenant', async () => {
+    // Arrange
+    const tenantId = 'tenant-123';
+    mockUserModel.find.mockReturnThis();
+    mockUserModel.exec.mockResolvedValue([userFromTenant123]);
+
+    // Act
+    const result = await service.findAll(tenantId);
+
+    // Assert
+    expect(result).toEqual([userFromTenant123]);
+    expect(mockUserModel.find).toHaveBeenCalledWith({ tenantId });
+  });
+});
+```
+
+## Authentication Testing
+
+1. **Mock Guards**: Test with mocked authentication guards.
+2. **JWT Verification**: Test JWT verification with mock tokens.
+3. **Role-Based Access**: Test role-based access control.
+
+```typescript
+// For JWT testing
+const mockJwtService = {
+  sign: jest.fn().mockReturnValue('mock-token'),
+  verify: jest.fn().mockReturnValue({ userId: 'user-123', roles: ['admin'] }),
+};
+
+// For testing guards
+const mockGuard = { canActivate: jest.fn().mockReturnValue(true) };
+```
+
+## Data Validation Testing
+
+1. **DTO Validation**: Test data transfer object validation.
+2. **Pipes**: Test custom validation pipes.
+
+```typescript
+it('should validate user creation DTO', async () => {
+  const invalidDto = { email: 'not-an-email' }; // Missing required fields
+  const validationPipe = new ValidationPipe();
+  
+  await expect(validationPipe.transform(invalidDto, metadata)).rejects.toThrow(BadRequestException);
+});
+```
+
+## Test Performance
+
+1. **Speed**: Keep tests fast to maintain development velocity.
+2. **Isolation**: Ensure tests can run in isolation and in parallel.
+3. **Setup/Teardown**: Use `beforeEach` and `afterEach` for proper test setup and cleanup.
+
+```typescript
+beforeEach(async () => {
+  // Test setup
+});
+
+afterEach(() => {
+  jest.clearAllMocks(); // Clear all mocks between tests
+});
+```
+
+## Code Quality Checks
+
+1. **Linting**: Run ESLint on test files.
+2. **Coverage**: Use Jest coverage reports to identify untested code.
+3. **Naming**: Use clear test descriptions that explain what is being tested.
+
+## Common Patterns
+
+### Testing Async Operations
+
+```typescript
+it('should handle async operations correctly', async () => {
+  // Arrange
+  mockUsersService.findAll.mockResolvedValue([user1, user2]);
+  
+  // Act
+  const result = await controller.findAll();
+  
+  // Assert
+  expect(result).toEqual([user1, user2]);
+});
+```
+
+### Testing Error Handling
+
+```typescript
+it('should handle errors appropriately', async () => {
+  // Arrange
+  mockUsersService.findOne.mockRejectedValue(new Error('Not found'));
+  
+  // Act & Assert
+  await expect(controller.findOne('1')).rejects.toThrow(HttpException);
+});
+```
+
+### Testing Events
+
+```typescript
+it('should emit events when appropriate', async () => {
+  // Arrange
+  const mockEventEmitter = { emit: jest.fn() };
+  
+  // Act
+  await service.performActionThatEmitsEvent();
+  
+  // Assert
+  expect(mockEventEmitter.emit).toHaveBeenCalledWith('event.name', expect.any(Object));
+});
+```
+
